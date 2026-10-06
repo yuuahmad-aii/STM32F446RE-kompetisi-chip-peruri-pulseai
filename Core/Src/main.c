@@ -55,7 +55,7 @@ DMA_HandleTypeDef hdma_spi2_tx;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-uint32_t camera_frame_buf[160 * 120 / 2];
+uint32_t camera_frame_buf[240 * 160 / 2];
 volatile uint8_t frame_ready = 0;
 /* USER CODE END PV */
 
@@ -120,17 +120,17 @@ int main(void)
   
   OV7670_Init();
   
-  // Gunakan fitur Crop DCMI untuk mengambil jendela 160x120 dari kamera beresolusi QCIF (176x144)
-  // X Offset = (176-160)/2 = 8 piksel = 16 bytes. Y Offset = (144-120)/2 = 12 baris.
-  HAL_DCMI_ConfigCrop(&hdcmi, 16, 12, 319, 119);
+  // Gunakan fitur Crop DCMI untuk mengambil jendela 240x160 dari kamera beresolusi QVGA (320x240)
+  // X Offset = (320-240)/2 = 40 piksel = 80 bytes. Y Offset = (240-160)/2 = 40 baris.
+  HAL_DCMI_ConfigCrop(&hdcmi, 80, 40, 479, 159);
   HAL_DCMI_EnableCrop(&hdcmi);
   
   // Turn on Display Backlight (PA7 - TIM3_CH2)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 65535); // 100% brightness
   
-  // Start the first snapshot (request 9600 words for full 160x120 frame)
-  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 9600);
+  // Start the first snapshot (request 19200 words for full 240x160 frame)
+  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 19200);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -143,7 +143,7 @@ int main(void)
         ILI9488_DrawCameraFrame((uint16_t*)camera_frame_buf);
         
         frame_ready = 0;
-        HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 9600);
+        HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 19200);
     }
     /* USER CODE END WHILE */
 

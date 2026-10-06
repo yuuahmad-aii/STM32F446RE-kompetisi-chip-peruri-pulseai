@@ -359,17 +359,17 @@ void ILI9488_DrawBitmapLVGL(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, 
 }
 
 void ILI9488_DrawCameraFrame(uint16_t *frame_buf) {
-    // 320x240 window centered on 480x320 screen
-    ILI9488_SetAddressWindow(80, 40, 399, 279);
+    // 480x320 window (Full Screen)
+    ILI9488_SetAddressWindow(0, 0, 479, 319);
     ILI9488_DC_DATA();
     ILI9488_CS_LOW();
     
-    static uint8_t spi_buf[960]; // 320 pixels * 3 bytes
+    static uint8_t spi_buf[1440]; // 480 pixels * 3 bytes
     
-    for (int y = 0; y < 120; y++) {
+    for (int y = 0; y < 160; y++) {
         int idx = 0;
-        for (int x = 0; x < 160; x++) {
-            uint16_t p = frame_buf[y * 160 + x];
+        for (int x = 0; x < 240; x++) {
+            uint16_t p = frame_buf[y * 240 + x];
             
             // DCMI packs bytes in little-endian, but OV7670 sends High Byte first.
             // We must swap the bytes to recover the correct RGB565 pixel.
@@ -390,8 +390,8 @@ void ILI9488_DrawCameraFrame(uint16_t *frame_buf) {
         }
         
         // Send line twice (scaled by 2 vertically)
-        ILI9488_TransmitDMA(spi_buf, 960);
-        ILI9488_TransmitDMA(spi_buf, 960);
+        ILI9488_TransmitDMA(spi_buf, 1440);
+        ILI9488_TransmitDMA(spi_buf, 1440);
     }
     
     ILI9488_CS_HIGH();
