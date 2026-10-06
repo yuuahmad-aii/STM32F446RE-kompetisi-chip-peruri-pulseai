@@ -1,0 +1,8 @@
+Decode1,I2C
+Time,W/R,Addr,Data,ACK,
+85.96ns,Write,42,,0,
+112.3us,Write,42,0A,0,
+314us,Read,43,76,1,
+515.7us,Write,42,0B,0,
+717.4us,Read,43,73,1,
+919us,Write,42,12 80,0,

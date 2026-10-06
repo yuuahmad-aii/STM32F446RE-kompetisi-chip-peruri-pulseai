@@ -124,8 +124,8 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 65535); // 100% brightness
   
-  // Start the first snapshot
-  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 160 * 120 / 2);
+  // Start the first snapshot (request 9000 words)
+  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 9000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -138,7 +138,7 @@ int main(void)
         ILI9488_DrawCameraFrame((uint16_t*)camera_frame_buf);
         
         frame_ready = 0;
-        HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 160 * 120 / 2);
+        HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 9000);
     }
     /* USER CODE END WHILE */
 
