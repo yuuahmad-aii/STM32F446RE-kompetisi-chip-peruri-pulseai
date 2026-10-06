@@ -120,9 +120,9 @@ int main(void)
   
   OV7670_Init();
   
-  // Gunakan fitur Crop DCMI untuk mengambil jendela TENGAH (160x120) dari kamera VGA (640x480)
-  // X Offset = (640-160)/2 = 240 piksel = 480 bytes. Y Offset = (480-120)/2 = 180 baris.
-  HAL_DCMI_ConfigCrop(&hdcmi, 480, 180, 319, 119);
+  // Gunakan fitur Crop DCMI untuk mengambil jendela 160x120 dari kamera beresolusi QCIF (176x144)
+  // X Offset = (176-160)/2 = 8 piksel = 16 bytes. Y Offset = (144-120)/2 = 12 baris.
+  HAL_DCMI_ConfigCrop(&hdcmi, 16, 12, 319, 119);
   HAL_DCMI_EnableCrop(&hdcmi);
   
   // Turn on Display Backlight (PA7 - TIM3_CH2)

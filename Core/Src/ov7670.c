@@ -21,8 +21,8 @@ const uint8_t ov7670_qqvga_rgb565[][2] = {
     {0x12, 0x80}, // COM7 Reset
     {0xFF, 100},  // Delay 100ms
 
-    // Base VGA (640x480) yang TERBUKTI STABIL tanpa downsampling/scaling internal kamera
-    {0x12, 0x04}, // COM7: VGA (0), RGB (0x04), Color Bar OFF = 0x04
+    // Menggunakan resolusi QCIF (176x144) bawaan sensor tanpa perlu scaling register tambahan
+    {0x12, 0x0E}, // COM7: QCIF (0x08), RGB (0x04) + Color Bar (0x02) = 0x0E
     {0x11, 0x01}, // CLKRC: Prescaler = 1
     {0x40, 0xD0}, // COM15: RGB565
     {0x8C, 0x00}, // RGB444: disable
@@ -32,8 +32,8 @@ const uint8_t ov7670_qqvga_rgb565[][2] = {
     {0x4f, 0x80}, {0x50, 0x80}, {0x51, 0x00}, {0x52, 0x22},
     {0x53, 0x5e}, {0x54, 0x80}, {0x58, 0x9e},
     
-    // Disable DSP Color Bar (COM17) - Tampilkan dunia nyata!
-    {0x42, 0x00},
+    // Enable DSP Color Bar (COM17) - Tampilkan 8 pita warna
+    {0x42, 0x08},
 
     {0xFF, 0xFF}
 };
