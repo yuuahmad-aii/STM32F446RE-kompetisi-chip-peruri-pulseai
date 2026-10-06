@@ -129,8 +129,8 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 65535); // 100% brightness
   
-  // Start the first snapshot (request 19200 words for full 240x160 frame)
-  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 19200);
+  // Start DCMI in CONTINUOUS mode (camera writes to RAM continuously in background)
+  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)camera_frame_buf, 19200);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -138,12 +138,10 @@ int main(void)
   while (1)
   {
     if (frame_ready) {
+        frame_ready = 0; // Clear flag BEFORE drawing so we don't miss the next frame interrupt!
         HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
         
         ILI9488_DrawCameraFrame((uint16_t*)camera_frame_buf);
-        
-        frame_ready = 0;
-        HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 19200);
     }
     /* USER CODE END WHILE */
 
@@ -174,7 +172,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 80;
+  RCC_OscInitStruct.PLL.PLLN = 90;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 5;
   RCC_OscInitStruct.PLL.PLLR = 2;
@@ -196,7 +194,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_PLLCLK, RCC_MCODIV_5);
+  HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_PLLCLK, RCC_MCODIV_4);
 }
 
 /**
