@@ -21,25 +21,19 @@ const uint8_t ov7670_qqvga_rgb565[][2] = {
     {0x12, 0x80}, // COM7 Reset
     {0xFF, 100},  // Delay 100ms
 
-    // Menggunakan base VGA (640x480) yang TERBUKTI JALAN sebelumnya
-    {0x12, 0x06}, // COM7: VGA (0), RGB (0x04) + Color Bar (0x02) = 0x06
+    // Base VGA (640x480) yang TERBUKTI STABIL tanpa downsampling/scaling internal kamera
+    {0x12, 0x04}, // COM7: VGA (0), RGB (0x04), Color Bar OFF = 0x04
     {0x11, 0x01}, // CLKRC: Prescaler = 1
     {0x40, 0xD0}, // COM15: RGB565
     {0x8C, 0x00}, // RGB444: disable
     {0x15, 0x00}, // COM10: PCLK does not toggle on HBLANK (0), normal VSYNC
     
-    // DOWNSAMPLE VGA (640x480) menjadi QQVGA (160x120) menggunakan DCW (dibagi 4)
-    {0x0C, 0x04}, // COM3: Enable DCW (Digital Capture Window)
-    {0x3E, 0x1A}, // COM14: Scaling manual enable, PCLK divided by 4
-    {0x72, 0x22}, // DCW_SCALING: Vertical downsample by 4, Horizontal downsample by 4
-    {0x73, 0xF2}, // PCLK_DIV_SCALING: Clock divide by 4
-    
     // Matrix (Standard RGB)
     {0x4f, 0x80}, {0x50, 0x80}, {0x51, 0x00}, {0x52, 0x22},
     {0x53, 0x5e}, {0x54, 0x80}, {0x58, 0x9e},
     
-    // Enable DSP Color Bar (COM17) as backup
-    {0x42, 0x08},
+    // Disable DSP Color Bar (COM17) - Tampilkan dunia nyata!
+    {0x42, 0x00},
 
     {0xFF, 0xFF}
 };

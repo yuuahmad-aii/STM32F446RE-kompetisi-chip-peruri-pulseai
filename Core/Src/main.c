@@ -120,12 +120,17 @@ int main(void)
   
   OV7670_Init();
   
+  // Gunakan fitur Crop DCMI untuk mengambil jendela TENGAH (160x120) dari kamera VGA (640x480)
+  // X Offset = (640-160)/2 = 240 piksel = 480 bytes. Y Offset = (480-120)/2 = 180 baris.
+  HAL_DCMI_ConfigCrop(&hdcmi, 480, 180, 319, 119);
+  HAL_DCMI_EnableCrop(&hdcmi);
+  
   // Turn on Display Backlight (PA7 - TIM3_CH2)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 65535); // 100% brightness
   
-  // Start the first snapshot (request 9000 words)
-  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 9000);
+  // Start the first snapshot (request 9600 words for full 160x120 frame)
+  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 9600);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -138,7 +143,7 @@ int main(void)
         ILI9488_DrawCameraFrame((uint16_t*)camera_frame_buf);
         
         frame_ready = 0;
-        HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 9000);
+        HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)camera_frame_buf, 9600);
     }
     /* USER CODE END WHILE */
 

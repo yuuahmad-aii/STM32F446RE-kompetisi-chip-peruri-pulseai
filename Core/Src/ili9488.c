@@ -17,8 +17,12 @@ static void ILI9488_TransmitDMA(uint8_t *data, uint16_t size) {
     if (hspi2.hdmatx != NULL) {
         spi_dma_complete = 0;
         if (HAL_SPI_Transmit_DMA(&hspi2, data, size) == HAL_OK) {
+            uint32_t tickstart = HAL_GetTick();
             while (!spi_dma_complete) {
-                // Wait for DMA completion
+                if ((HAL_GetTick() - tickstart) > 200) { // 200ms timeout
+                    HAL_SPI_Abort(&hspi2);
+                    break;
+                }
             }
             return;
         }
