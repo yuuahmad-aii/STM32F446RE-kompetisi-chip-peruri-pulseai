@@ -1,4 +1,8 @@
-module bnn_accelerator (
+import os
+
+output_file = 'bnn_accelerator.sv'
+with open(output_file, 'w') as f:
+    f.write('''module bnn_accelerator (
     input  logic clk,
     input  logic rst_n,
     input  logic start,
@@ -43,69 +47,26 @@ module bnn_accelerator (
     always_ff @(posedge clk) begin
         // Layer 1 ROM (Synthesized to LEs since MAX10 SC does not support ERAM)
         case (counter[4:0])
-            0: begin l1_w_reg <= L1_N0_W; l1_t_reg <= L1_N0_T; end
-            1: begin l1_w_reg <= L1_N1_W; l1_t_reg <= L1_N1_T; end
-            2: begin l1_w_reg <= L1_N2_W; l1_t_reg <= L1_N2_T; end
-            3: begin l1_w_reg <= L1_N3_W; l1_t_reg <= L1_N3_T; end
-            4: begin l1_w_reg <= L1_N4_W; l1_t_reg <= L1_N4_T; end
-            5: begin l1_w_reg <= L1_N5_W; l1_t_reg <= L1_N5_T; end
-            6: begin l1_w_reg <= L1_N6_W; l1_t_reg <= L1_N6_T; end
-            7: begin l1_w_reg <= L1_N7_W; l1_t_reg <= L1_N7_T; end
-            8: begin l1_w_reg <= L1_N8_W; l1_t_reg <= L1_N8_T; end
-            9: begin l1_w_reg <= L1_N9_W; l1_t_reg <= L1_N9_T; end
-            10: begin l1_w_reg <= L1_N10_W; l1_t_reg <= L1_N10_T; end
-            11: begin l1_w_reg <= L1_N11_W; l1_t_reg <= L1_N11_T; end
-            12: begin l1_w_reg <= L1_N12_W; l1_t_reg <= L1_N12_T; end
-            13: begin l1_w_reg <= L1_N13_W; l1_t_reg <= L1_N13_T; end
-            14: begin l1_w_reg <= L1_N14_W; l1_t_reg <= L1_N14_T; end
-            15: begin l1_w_reg <= L1_N15_W; l1_t_reg <= L1_N15_T; end
-            16: begin l1_w_reg <= L1_N16_W; l1_t_reg <= L1_N16_T; end
-            17: begin l1_w_reg <= L1_N17_W; l1_t_reg <= L1_N17_T; end
-            18: begin l1_w_reg <= L1_N18_W; l1_t_reg <= L1_N18_T; end
-            19: begin l1_w_reg <= L1_N19_W; l1_t_reg <= L1_N19_T; end
-            20: begin l1_w_reg <= L1_N20_W; l1_t_reg <= L1_N20_T; end
-            21: begin l1_w_reg <= L1_N21_W; l1_t_reg <= L1_N21_T; end
-            22: begin l1_w_reg <= L1_N22_W; l1_t_reg <= L1_N22_T; end
-            23: begin l1_w_reg <= L1_N23_W; l1_t_reg <= L1_N23_T; end
-            24: begin l1_w_reg <= L1_N24_W; l1_t_reg <= L1_N24_T; end
-            25: begin l1_w_reg <= L1_N25_W; l1_t_reg <= L1_N25_T; end
-            26: begin l1_w_reg <= L1_N26_W; l1_t_reg <= L1_N26_T; end
-            27: begin l1_w_reg <= L1_N27_W; l1_t_reg <= L1_N27_T; end
-            28: begin l1_w_reg <= L1_N28_W; l1_t_reg <= L1_N28_T; end
-            29: begin l1_w_reg <= L1_N29_W; l1_t_reg <= L1_N29_T; end
-            30: begin l1_w_reg <= L1_N30_W; l1_t_reg <= L1_N30_T; end
-            31: begin l1_w_reg <= L1_N31_W; l1_t_reg <= L1_N31_T; end
-            default: begin l1_w_reg <= 0; l1_t_reg <= 0; end
+''')
+    for i in range(32):
+        f.write(f"            {i}: begin l1_w_reg <= L1_N{i}_W; l1_t_reg <= L1_N{i}_T; end\n")
+    f.write('''            default: begin l1_w_reg <= 0; l1_t_reg <= 0; end
         endcase
         
         // Layer 2 ROM
         case (counter[3:0])
-            0: begin l2_w_reg <= L2_N0_W; l2_t_reg <= L2_N0_T; end
-            1: begin l2_w_reg <= L2_N1_W; l2_t_reg <= L2_N1_T; end
-            2: begin l2_w_reg <= L2_N2_W; l2_t_reg <= L2_N2_T; end
-            3: begin l2_w_reg <= L2_N3_W; l2_t_reg <= L2_N3_T; end
-            4: begin l2_w_reg <= L2_N4_W; l2_t_reg <= L2_N4_T; end
-            5: begin l2_w_reg <= L2_N5_W; l2_t_reg <= L2_N5_T; end
-            6: begin l2_w_reg <= L2_N6_W; l2_t_reg <= L2_N6_T; end
-            7: begin l2_w_reg <= L2_N7_W; l2_t_reg <= L2_N7_T; end
-            8: begin l2_w_reg <= L2_N8_W; l2_t_reg <= L2_N8_T; end
-            9: begin l2_w_reg <= L2_N9_W; l2_t_reg <= L2_N9_T; end
-            10: begin l2_w_reg <= L2_N10_W; l2_t_reg <= L2_N10_T; end
-            11: begin l2_w_reg <= L2_N11_W; l2_t_reg <= L2_N11_T; end
-            12: begin l2_w_reg <= L2_N12_W; l2_t_reg <= L2_N12_T; end
-            13: begin l2_w_reg <= L2_N13_W; l2_t_reg <= L2_N13_T; end
-            14: begin l2_w_reg <= L2_N14_W; l2_t_reg <= L2_N14_T; end
-            15: begin l2_w_reg <= L2_N15_W; l2_t_reg <= L2_N15_T; end
-            default: begin l2_w_reg <= 0; l2_t_reg <= 0; end
+''')
+    for i in range(16):
+        f.write(f"            {i}: begin l2_w_reg <= L2_N{i}_W; l2_t_reg <= L2_N{i}_T; end\n")
+    f.write('''            default: begin l2_w_reg <= 0; l2_t_reg <= 0; end
         endcase
 
         // Layer 3 ROM
         case (counter[1:0])
-            0: begin l3_w_reg <= L3_N0_W; l3_t_reg <= L3_N0_T; end
-            1: begin l3_w_reg <= L3_N1_W; l3_t_reg <= L3_N1_T; end
-            2: begin l3_w_reg <= L3_N2_W; l3_t_reg <= L3_N2_T; end
-            3: begin l3_w_reg <= L3_N3_W; l3_t_reg <= L3_N3_T; end
-            default: begin l3_w_reg <= 0; l3_t_reg <= 0; end
+''')
+    for i in range(4):
+        f.write(f"            {i}: begin l3_w_reg <= L3_N{i}_W; l3_t_reg <= L3_N{i}_T; end\n")
+    f.write('''            default: begin l3_w_reg <= 0; l3_t_reg <= 0; end
         endcase
     end
 
@@ -218,3 +179,4 @@ module bnn_accelerator (
         end
     end
 endmodule
+''')

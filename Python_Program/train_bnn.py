@@ -153,12 +153,12 @@ val_dataset = raw_val_dataset.map(process_val)
 model = tf.keras.models.Sequential([
     tf.keras.layers.Flatten(input_shape=(28, 28, 1)),
     
-    # Hidden Layer 1 (Diturunkan menjadi 64 agar muat di 8K LEs MAX10)
-    QuantizedDense(64, name="bin_dense_1"),
+    # Hidden Layer 1 (Diturunkan menjadi 32 agar muat di LE FPGA)
+    QuantizedDense(32, name="bin_dense_1"),
     tf.keras.layers.BatchNormalization(scale=True, name="bn_1"),
     
-    # Hidden Layer 2 (Diturunkan menjadi 32 agar muat di 8K LEs MAX10)
-    QuantizedDense(32, name="bin_dense_2"),
+    # Hidden Layer 2 (Diturunkan menjadi 16 agar muat di LE FPGA)
+    QuantizedDense(16, name="bin_dense_2"),
     tf.keras.layers.BatchNormalization(scale=True, name="bn_2"),
     
     # Output Layer

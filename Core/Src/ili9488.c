@@ -160,7 +160,7 @@ void ILI9488_Init(void) {
   HAL_Delay(120);
 
   ILI9488_CS_LOW();
-  // ILI9488_SendCommand(0x21); // Display Inversion ON (make negatif color)
+  //ILI9488_SendCommand(0x21); // Display Inversion ON (make negatif color)
   ILI9488_SendCommand(0x20); // display inversion off
   ILI9488_SendCommand(0x29); // Display on
   ILI9488_CS_HIGH();

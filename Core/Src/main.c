@@ -26,6 +26,7 @@
 #include "ili9488.h"
 #include "ov7670.h"
 #include "usbd_cdc_if.h"
+#include "fonts.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -134,25 +135,29 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 65535); // 100% brightness
 
-  // Start DCMI in CONTINUOUS mode (camera writes to RAM continuously in
-  // background)
-  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)camera_frame_buf,
-                     19200);
+  // Start DCMI in CONTINUOUS mode (camera writes to RAM continuously in background)
+  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)camera_frame_buf, 19200);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint8_t spi_tx_buf[98];
+  uint8_t spi_rx_buf[1];
+  
   while (1) {
     if (frame_ready) {
-      frame_ready = 0; // Clear flag BEFORE drawing so we don't miss the next
-                       // frame interrupt!
+      frame_ready = 0; // Clear flag BEFORE drawing so we don't miss the next frame interrupt!
       HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
 
       // --- 1. DOWNSAMPLING TO 28x28 AVERAGE POOLING ---
       usb_tx_buf[0] = 0xAA;
       usb_tx_buf[1] = 0x55;
       int idx = 2;
+      
+      // Bersihkan buffer SPI
+      memset(spi_tx_buf, 0, sizeof(spi_tx_buf));
 
+      int bit_idx = 0;
       // Loop untuk 28x28 piksel target
       for (int dy = 0; dy < 28; dy++) {
         for (int dx = 0; dx < 28; dx++) {
@@ -183,17 +188,52 @@ int main(void)
             }
           }
 
-          // Simpan nilai rata-rata dari 16 piksel (dibagi 16 menggunakan bit
-          // shift >> 4)
-          usb_tx_buf[idx++] = sum_gray >> 4;
+          // Simpan nilai rata-rata dari 16 piksel
+          uint8_t final_gray = sum_gray >> 4;
+          usb_tx_buf[idx++] = final_gray;
+          
+          // Binarisasi dan Packing ke 98 bytes (784 bit) untuk FPGA
+          // Ambang batas binarisasi = 127
+          if (final_gray > 127) {
+              int byte_pos = bit_idx / 8;
+              int bit_pos = 7 - (bit_idx % 8); // MSB first
+              spi_tx_buf[byte_pos] |= (1 << bit_pos);
+          }
+          bit_idx++;
         }
       }
 
       // Kirim 786 byte ke PC via USB CDC
       CDC_Transmit_FS(usb_tx_buf, 786);
 
-      // --- 2. TAMPILKAN KE LAYAR LCD ---
+      // --- 2. KIRIM GAMBAR BINER KE FPGA VIA SPI3 ---
+      HAL_GPIO_WritePin(SPI3_CS_GPIO_Port, SPI3_CS_Pin, GPIO_PIN_RESET);
+      HAL_SPI_Transmit(&hspi3, spi_tx_buf, 98, HAL_MAX_DELAY);
+      HAL_GPIO_WritePin(SPI3_CS_GPIO_Port, SPI3_CS_Pin, GPIO_PIN_SET);
+      
+      // Tunggu FPGA memproses (hitungan microsecond, pakai delay singkat)
+      HAL_Delay(1); 
+      
+      // --- 3. BACA HASIL INFERENSI DARI FPGA ---
+      HAL_GPIO_WritePin(SPI3_CS_GPIO_Port, SPI3_CS_Pin, GPIO_PIN_RESET);
+      // Dummy transmit untuk shift-in hasil MISO dari FPGA
+      uint8_t dummy_tx[1] = {0x00};
+      HAL_SPI_TransmitReceive(&hspi3, dummy_tx, spi_rx_buf, 1, HAL_MAX_DELAY);
+      HAL_GPIO_WritePin(SPI3_CS_GPIO_Port, SPI3_CS_Pin, GPIO_PIN_SET);
+
+      // --- 4. TAMPILKAN KE LAYAR LCD ---
       ILI9488_DrawCameraFrame((uint16_t *)camera_frame_buf);
+      
+      // Decode Hasil FPGA (Marker 0xAA)
+      // Format dari fpga tx_shift_reg: {6'b101010, tx_data}
+      if ((spi_rx_buf[0] & 0xFC) == 0xA8) {
+          uint8_t class_id = spi_rx_buf[0] & 0x03;
+          const char* labels[] = {"Lainnya", "Lingkaran", "Segiempat", "Segitiga"};
+          
+          // Gambar Background Label di pojok layar
+          ILI9488_FillRectangle(10, 10, 150, 30, ILI9488_BLACK);
+          ILI9488_WriteStringScaled(15, 15, labels[class_id], Font_7x10, ILI9488_GREEN, ILI9488_BLACK, 2);
+      }
     }
     /* USER CODE END WHILE */
 

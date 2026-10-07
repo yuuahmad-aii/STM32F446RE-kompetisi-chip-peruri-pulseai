@@ -39,7 +39,7 @@
 
 set_global_assignment -name FAMILY "MAX 10"
 set_global_assignment -name DEVICE 10M08SCE144I7G
-set_global_assignment -name TOP_LEVEL_ENTITY ili9488_top
+set_global_assignment -name TOP_LEVEL_ENTITY ai_accelerator_top
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 25.1STD.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "09:18:26  OCTOBER 06, 2026"
 set_global_assignment -name LAST_QUARTUS_VERSION "25.1std.0 Lite Edition"
@@ -56,7 +56,7 @@ set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_symbol
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_signal_integrity
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
-set_global_assignment -name SYSTEMVERILOG_FILE ili9488_top.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ai_accelerator_top.sv
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name FLOW_ENABLE_POWER_ANALYZER ON
@@ -67,38 +67,32 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_location_assignment PIN_27 -to clk_50mhz
 set_location_assignment PIN_87 -to btn_rst
 set_location_assignment PIN_92 -to led_pin
-set_location_assignment PIN_93 -to ili_miso
-set_location_assignment PIN_97 -to ili_led
-set_location_assignment PIN_99 -to ili_sck
-set_location_assignment PIN_101 -to ili_mosi
-set_location_assignment PIN_105 -to ili_dc
-set_location_assignment PIN_110 -to ili_rst
-set_location_assignment PIN_112 -to ili_cs
-set_global_assignment -name SYSTEMVERILOG_FILE tb_ili9488_top.sv
 set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
 set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH tb_ili9488_top -section_id eda_simulation
 set_global_assignment -name EDA_TEST_BENCH_NAME tb_ili9488_top -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id tb_ili9488_top
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME tb_ili9488_top -section_id tb_ili9488_top
-set_global_assignment -name EDA_TEST_BENCH_FILE tb_ili9488_top.sv -section_id tb_ili9488_top -hdl_version SystemVerilog_2005
-set_global_assignment -name SYSTEMVERILOG_FILE ov7670_i2c.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ov7670_capture.sv
-set_location_assignment PIN_96 -to cam_scl
-set_location_assignment PIN_120 -to cam_sda
-set_location_assignment PIN_98 -to cam_vs
-set_location_assignment PIN_124 -to cam_xclk
-set_location_assignment PIN_118 -to cam_ret
-set_location_assignment PIN_138 -to cam_pwdn
-set_location_assignment PIN_100 -to cam_pclk
-set_location_assignment PIN_122 -to cam_hs
-set_location_assignment PIN_135 -to cam_d[0]
-set_location_assignment PIN_132 -to cam_d[2]
-set_location_assignment PIN_130 -to cam_d[4]
-set_location_assignment PIN_127 -to cam_d[6]
-set_location_assignment PIN_113 -to cam_d[1]
-set_location_assignment PIN_111 -to cam_d[3]
-set_location_assignment PIN_106 -to cam_d[5]
-set_location_assignment PIN_102 -to cam_d[7]
+set_global_assignment -name EDA_TEST_BENCH_FILE tb_ai_accelerator_top.sv -section_id tb_ili9488_top -hdl_version SystemVerilog_2005
 set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF
 set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF
+# --- AI ACCELERATOR SPI PINS ---
+set_location_assignment PIN_99 -to spi_sck
+set_location_assignment PIN_101 -to spi_mosi
+set_location_assignment PIN_97 -to spi_miso
+set_location_assignment PIN_93 -to spi_cs_n
+
+set_global_assignment -name SYSTEMVERILOG_FILE spi_slave.sv
+set_global_assignment -name SYSTEMVERILOG_FILE bnn_accelerator.sv
+set_global_assignment -name VERILOG_INCLUDE_FILE weights.vh
+
+
+set_global_assignment -name ENABLE_OCT_DONE OFF
+set_global_assignment -name EXTERNAL_FLASH_FALLBACK_ADDRESS 00000000
+set_global_assignment -name USE_CONFIGURATION_DEVICE OFF
+set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -fall
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
+
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
