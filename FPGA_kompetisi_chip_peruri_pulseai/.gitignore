@@ -1,0 +1,40 @@
+# Quartus Prime temporary and output files
+db/
+incremental_db/
+output_files/
+simulation/
+greybox_tmp/
+
+# Quartus Settings and Workspace files
+*.qws
+*.bak
+
+# Reports and logs
+*.rpt
+*.smsg
+*.summary
+*.done
+*.pin
+*.qws
+*.jdi
+*.sld
+
+# Programming files
+*.sof
+*.pof
+*.jam
+*.jbc
+*.ekp
+*.jic
+
+# Qsys / Platform Designer generated files
+*.sopcinfo
+*.html
+*.cmp
+
+# SignalTap II
+*.stp
+
+# OS generated files
+.DS_Store
+Thumbs.db
