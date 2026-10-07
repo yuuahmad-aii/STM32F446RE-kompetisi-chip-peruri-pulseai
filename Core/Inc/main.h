@@ -73,6 +73,8 @@ void Error_Handler(void);
 #define OV7670_RET_GPIO_Port GPIOA
 #define OV7670_PWDN_Pin GPIO_PIN_10
 #define OV7670_PWDN_GPIO_Port GPIOA
+#define SPI3_CS_Pin GPIO_PIN_2
+#define SPI3_CS_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
 
