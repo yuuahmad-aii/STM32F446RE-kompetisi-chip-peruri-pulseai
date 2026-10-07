@@ -118,6 +118,10 @@ def extract_bnn_params(model, output_file):
                         thresh_int = max(0, min(in_features, thresh_int))
                         
                         f.write(f"parameter int L{layer_idx}_N{neuron}_T = {thresh_int};\n")
+                else:
+                    f.write(f"// --- LAYER {layer_idx} (NO BATCHNORM) DEFAULT THRESHOLDS ---\n")
+                    for neuron in range(out_features):
+                        f.write(f"parameter int L{layer_idx}_N{neuron}_T = 0;\n")
                         
                 f.write("\n\n")
                 layer_idx += 1

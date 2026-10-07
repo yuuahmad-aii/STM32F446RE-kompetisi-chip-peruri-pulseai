@@ -48,7 +48,16 @@ module ai_accelerator_top (
         .done(tx_ready)
     );
 
-    // Turn on LED when inference is done
-    assign led_pin = tx_ready; 
+    // Heartbeat LED (Toggles roughly every 0.33 seconds at 50MHz)
+    logic [24:0] hb_counter = 0;
+    always_ff @(posedge clk_50mhz) begin
+        if (!rst_n) begin
+            hb_counter <= 0;
+        end else begin
+            hb_counter <= hb_counter + 1;
+        end
+    end
+    
+    assign led_pin = hb_counter[24]; 
     
 endmodule

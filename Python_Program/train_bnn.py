@@ -163,7 +163,6 @@ model = tf.keras.models.Sequential([
     
     # Output Layer
     QuantizedDense(NUM_CLASSES, name="bin_dense_3"),
-    tf.keras.layers.BatchNormalization(scale=True, name="bn_3"),
     tf.keras.layers.Activation("softmax")
 ])
 

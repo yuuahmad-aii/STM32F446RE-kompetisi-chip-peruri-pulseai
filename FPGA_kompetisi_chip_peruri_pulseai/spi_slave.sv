@@ -15,69 +15,78 @@ module spi_slave (
     input  logic tx_ready         // High when inference is done
 );
 
-    // Synchronizers for SPI inputs
-    logic sck_sync1, sck_sync2;
-    logic mosi_sync1, mosi_sync2;
-    logic cs_n_sync1, cs_n_sync2;
+    // ========================================================
+    // 50 MHz CLOCK DOMAIN (System)
+    // ========================================================
+    logic [7:0] tx_buffer;
     
+    // Latch inference result whenever it's ready.
+    // This buffer is stable during the SPI transaction.
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            {sck_sync2, sck_sync1} <= 2'b00;
-            {mosi_sync2, mosi_sync1} <= 2'b00;
-            {cs_n_sync2, cs_n_sync1} <= 2'b11;
-        end else begin
-            {sck_sync2, sck_sync1} <= {sck_sync1, sck};
-            {mosi_sync2, mosi_sync1} <= {mosi_sync1, mosi};
-            {cs_n_sync2, cs_n_sync1} <= {cs_n_sync1, cs_n};
+            tx_buffer <= 8'h00;
+        end else if (tx_ready) begin
+            // Marker 0xA8 (101010) + tx_data (2 bit)
+            tx_buffer <= {6'b101010, tx_data};
         end
     end
 
-    logic sck_rising_edge;
-    logic sck_falling_edge;
-    assign sck_rising_edge  = (sck_sync1 == 1'b1) && (sck_sync2 == 1'b0);
-    assign sck_falling_edge = (sck_sync1 == 1'b0) && (sck_sync2 == 1'b1);
+    // Synchronize rx_done_toggle from SPI domain to 50MHz domain
+    logic [2:0] rx_done_sync;
+    logic rx_done_toggle;
+    
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            rx_done_sync <= 0;
+            rx_done <= 0;
+        end else begin
+            rx_done_sync <= {rx_done_sync[1:0], rx_done_toggle};
+            // Detect edge of toggle signal to generate a 1-cycle pulse
+            rx_done <= (rx_done_sync[2] ^ rx_done_sync[1]);
+        end
+    end
 
-    logic [9:0] bit_cnt; // up to 784
+    // ========================================================
+    // SPI CLOCK DOMAIN (SCK)
+    // ========================================================
+    logic [9:0] bit_cnt;
     logic [783:0] shift_reg;
     logic [7:0] tx_shift_reg;
 
-    always_ff @(posedge clk or negedge rst_n) begin
+    // SCK Rising Edge: Sample MOSI
+    always_ff @(posedge sck or posedge cs_n or negedge rst_n) begin
         if (!rst_n) begin
             bit_cnt <= 0;
-            rx_done <= 0;
-            shift_reg <= 0;
-            rx_data <= 0;
-            tx_shift_reg <= 0;
+            rx_done_toggle <= 0;
+        end else if (cs_n) begin
+            bit_cnt <= 0;
+            // We do NOT clear rx_data or rx_done_toggle here, 
+            // they must persist for the 50MHz domain to read them!
         end else begin
-            rx_done <= 0;
+            shift_reg <= {shift_reg[782:0], mosi};
+            bit_cnt <= bit_cnt + 1;
             
-            if (cs_n_sync2) begin
-                bit_cnt <= 0;
-                // If inference is done, load it into tx register. 
-                // We add 0xAA as a marker to show it's a valid result. (e.g. 101010xx)
-                if (tx_ready) tx_shift_reg <= {6'b101010, tx_data};
-                else tx_shift_reg <= 8'h00; 
-            end else begin
-                // Sample MOSI on SCK rising edge (SPI Mode 0: CPHA=0, CPOL=0)
-                if (sck_rising_edge) begin
-                    shift_reg <= {shift_reg[782:0], mosi_sync2};
-                    bit_cnt <= bit_cnt + 1;
-                    
-                    if (bit_cnt == 783) begin
-                        rx_data <= {shift_reg[782:0], mosi_sync2};
-                        rx_done <= 1'b1;
-                    end
-                end
-                
-                // Shift MISO on SCK falling edge
-                if (sck_falling_edge) begin
-                    tx_shift_reg <= {tx_shift_reg[6:0], 1'b0};
-                end
+            if (bit_cnt == 783) begin
+                rx_data <= {shift_reg[782:0], mosi};
+                rx_done_toggle <= ~rx_done_toggle; // Toggle to signal 50MHz domain
             end
         end
     end
-    
-    // MISO is sent MSB first
-    assign miso = cs_n_sync2 ? 1'bZ : tx_shift_reg[7];
+
+    // SCK Falling Edge: Shift MISO
+    always_ff @(negedge sck or posedge cs_n or negedge rst_n) begin
+        if (!rst_n) begin
+            tx_shift_reg <= 8'h00;
+        end else if (cs_n) begin
+            // When CS goes high (Idle), load the shift register with the latest buffer!
+            tx_shift_reg <= tx_buffer;
+        end else begin
+            // Shift left on every falling edge
+            tx_shift_reg <= {tx_shift_reg[6:0], 1'b0};
+        end
+    end
+
+    // MISO is sent MSB first, tri-stated when CS is high
+    assign miso = cs_n ? 1'bZ : tx_shift_reg[7];
 
 endmodule
